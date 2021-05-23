@@ -1,0 +1,23 @@
+{
+  "name": "paper-hand-service-node",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "start": "node ./reddit_fetcher/index.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/karsanU/paper-hand-service-node.git"
+  },
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/karsanU/paper-hand-service-node/issues"
+  },
+  "homepage": "https://github.com/karsanU/paper-hand-service-node#readme",
+  "dependencies": {
+    "reddit": "^1.2.1"
+  }
+}
