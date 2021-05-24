@@ -12,7 +12,7 @@ const readline = require('readline')
 
 // process the CSV to populate the stock names 
 stock_names = {}
-stock_names_read = false 
+stock_names_read = false
 let t0;
 let t1;
 const result = {}
@@ -42,18 +42,20 @@ function is_stock_name_in_comment(comments) {
             // if the stock name only a single char then do this  
             if (key.length == 1) {
                 if (comment.data.body.includes(` $${key} `)) {
-                    result[key] = Object.keys(result).includes(key) ? result[key] + 1 : 1
+                    result[key] = Object.keys(result).includes(key) ? result[key] + 1 : 1                                                                                                                                                                                                                                        () ? result[key] + 1 : 1
                 }
                 // stock name is longer than one char
-            } else if (comment.data.body.includes(` ${key} `)||
-                 comment.data.body.includes(` $${key} `) 
-                ||comment.data.body.includes(` ${key}.`)) 
-                 {
+            } else if (comment.data.body.includes(` ${key} `) ||
+                comment.data.body.includes(` $${key} `) ||
+                comment.data.body.includes(` ${key}, `)
+                || comment.data.body.includes(` ${key}.`)) {
                 result[key] = Object.keys(result).includes(key) ? result[key] + 1 : 1
+                console.log(`${key}: ${comment.data.body}`)
+                console.log(`_____________________________________________`)
             }
         })
     })
-    console.log('result ', result)
+    // console.log('result ', result)
 }
 
 // listen for parent's instructions
@@ -64,7 +66,6 @@ process.on('message', (data) => {
     } else {
         is_stock_name_in_comment(data.comments)
     }
-    console.log((data.id))
+    // console.log((data.id))
     process.send(data.id)
 });
- 

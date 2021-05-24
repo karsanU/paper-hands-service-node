@@ -36,9 +36,6 @@ function create_child_processes(cpuCount) {
     }
 }
 
-// 
-
-
 // get the data from API along with headers
 let before = ""
 let before_is_working = false
@@ -61,16 +58,18 @@ async function get_comments() {
         if (processor_queue.length >= 1) {
             // call reddit api
             let sub_reddits = "Investing+Stocks+Economics+StockMarket+Economy+GlobalMarkets+WallStreetBets+Options+Finance+Bitcoin+Dividends+Cryptocurrency+SecurityAnalysis+AlgoTrading+DayTrading+PennyStocks"
+            //sub_reddits = "all"
             t0 = performance.now()
             const res = await reddit.get(`/r/${sub_reddits}/comments`, opt)
             t1 = performance.now()
-            console.log("The api call took " + (t1 - t0) + "milliseconds." + " We received: " + res.body.data.children.length + ' comments.')
+            // console.log("The api call took " + (t1 - t0) + "milliseconds." + " We received: " + res.body.data.children.length + ' comments.')
 
             // we have a case where our anchor before comment has been delete
             // OR we didn't receive any comments on the last run 
             let comments = res.body.data.children
             if (comments.length > 0 && before !== ""
-                && comments[comments.length - 1].data.name.slice(3) < before.slice(3)) {
+                && comments[comments.length - 1].data.name.slice(3) < before.slice(3)
+                && !before_is_working) {
                 let index = 0
                 let id = before.slice(3)
                 while (comments[index].data.id > id) {
@@ -83,15 +82,15 @@ async function get_comments() {
 
             // update before 
             if (comments.length > 0) {
-                console.log("before: ", comments[0].data.name, res.body.data.before,
-                    " after: ", comments[comments.length - 1].data.name, res.body.data.after)
+                // console.log("before: ", comments[0].data.name, res.body.data.before,
+                //     " after: ", comments[comments.length - 1].data.name, res.body.data.after)
                 before = comments[0].data.name
                 before_is_working = true
                 // call the child process
                 const process_ref = processor_queue.dequeue()
                 process_ref.process.send({ comments, id: process_ref.id })
                 request_num++
-                console.log(request_num)
+                // console.log(request_num)
                 setTimeout(get_comments, 0)
             } else {
                 before_is_working = false
@@ -99,6 +98,9 @@ async function get_comments() {
                 console.log(request_num)
                 setTimeout(get_comments, 0)
             }
+        } else {
+            // no process is free ty again in  bit
+            setTimeout(get_comments, 100)
         }
     } catch (e) {
         console.log(e)
