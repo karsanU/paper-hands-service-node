@@ -1,4 +1,4 @@
-const nlp = require('compromise');
+// const nlp = require('compromise');
 
 
 // console.log(nlp)
@@ -6,6 +6,6 @@ const nlp = require('compromise');
 // console.log(nlp(test_text))
 // console.log(nlp(test_text).match('mama is so #Adjective haha').text())
 
-c = nlp(`I will buy IS `)
-console.log(c.nouns())
-console.log(c.text());
+// c = nlp(`I will buy IS `)
+// console.log(c.nouns())
+// console.log(c.text());
