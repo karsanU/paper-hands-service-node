@@ -39,14 +39,12 @@ class Queue {
         }
     }
 };
-
 class Node {
     constructor(val) {
         this.val = val
         this.next = null
     }
 }
-
 */
 
 class Queue {
@@ -76,5 +74,4 @@ class Queue {
     return this.tailIndex - this.headIndex;
   }
 }
-
-module.exports = Queue
+module.exports = Queue;

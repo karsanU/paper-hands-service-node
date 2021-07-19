@@ -6,32 +6,63 @@ const readline = require("readline");
     If the comment is found with a stock name push the comment info to database.
 -----------------------------------------------------------------------
     Important variables from the comment datatype received from the API request.
-    These values will be tracked in the database for the comment
+    These values will be tracked in the database for the comment.
         - parent_id : this the the post that this comment is made on
+*/
+
+/*
+TODO use regex
+TODO fuzzy matching
+TODO edge cases: plurals, currencies, mapping crypto  
 */
 
 // process the CSV to populate the stock names
 stock_names = {};
-black_list_stock_names = [`DD`, `YOLO`];
+black_list_stock_names = [
+  "DD",
+  "YOLO",
+  "USA",
+  "UK",
+  "IMO",
+  "FYI",
+  "LOL",
+  "HAHA",
+  "YOLO",
+  "BTW",
+  "AFK",
+  "IQ",
+  "DM",
+  "NBA",
+  "FK",
+  "TA",
+  "POW",
+  "CAD",
+  "AUD",
+  "EUR",
+  "NGL",
+  "ARE",
+  "IRS",
+  "AF",
+  "AR",
+];
 stock_names_read = false;
-let t0;
-let t1;
 const result = {};
-function populate_stock_names(comments) {
+
+/*
+Read a list popular english words add the words under 4 letters to the ban list.
+These banned symbols must have a '$' in front as these words can be used out side the stock market context often. 
+*/
+function populate_ban_list(comments) {
   const reader = readline.createInterface({
-    input: fs.createReadStream("stock_names.csv"),
+    input: fs.createReadStream("5000-words.txt"),
   });
   // this is an async function
   reader
-    .on("line", function (line) {
-      // process each line
-      parsed_data = line.split(",", 2);
-      if (
-        !black_list_stock_names.includes(parsed_data[0]) &&
-        !parsed_data[0].contains(`^`)
-      ) {
-        stock_names[parsed_data[0]] = parsed_data[1];
-        console.log(!parsed_data[0]);
+    .on("line", function (word) {
+      if (word.length <= 4) {
+        if (!/[^a-zA-Z]/.test(word)) {
+          black_list_stock_names.push(word.toUpperCase());
+        }
       }
     })
     .on("close", function () {
@@ -45,29 +76,62 @@ function populate_stock_names(comments) {
     });
 }
 
+/*
+Read a list of files to get the stock names. 
+*/
+function populate_stock_names(comments) {
+  const reader = readline.createInterface({
+    input: fs.createReadStream("stock_names.csv"),
+  });
+  // this is an async function
+  reader
+    .on("line", function (line) {
+      // process each line
+      parsed_data = line.split(",", 2);
+      if (
+        !black_list_stock_names.includes(parsed_data[0]) &&
+        !parsed_data[0].includes(`^`)
+      ) {
+        stock_names[parsed_data[0]] = parsed_data[1];
+      }
+    })
+    .on("close", function () {
+      // now we're done reading the file
+      populate_ban_list(comments);
+    })
+    .on("error", function (err) {
+      // handle errors here
+      console.log(err);
+    });
+}
+
 // check comments to see if stock name exits
 function is_stock_name_in_comment(comments) {
   comments.forEach((comment) => {
     Object.keys(stock_names).forEach((key) => {
+      let stock_symbol;
+      // if the stock name is in the ban list, it must include a `$` before it
+      if (key.length == 1 || black_list_stock_names.includes(key)) {
+        stock_symbol = "$" + key;
+      } else {
+        stock_symbol = "$" + key;
+      }
+
       // if the stock name only a single char then do this
-      if (key.length == 1) {
-        if (comment.data.body.includes(` $${key} `)) {
-          result[key] = Object.keys(result).includes(key)
-            ? result[key] + 1
-            : 1()
-            ? result[key] + 1
+      // adding the empty " " to prevent edge case
+      const _comment = " " + comment.data.body;
+      if (_comment.includes(`${stock_symbol}`)) {
+        if (
+          _comment.includes(` ${stock_symbol} `) ||
+          _comment.includes(` ${stock_symbol}, `) ||
+          _comment.includes(` ${stock_symbol}.`)
+        ) {
+          result[stock_symbol] = Object.keys(result).includes(stock_symbol)
+            ? result[stock_symbol] + 1
             : 1;
+          console.log(`${stock_symbol}: ${comment.data.body}`);
+          console.log(`_____________________________________________`);
         }
-        // stock name is longer than one char
-      } else if (
-        comment.data.body.includes(` ${key} `) ||
-        comment.data.body.includes(` $${key} `) ||
-        comment.data.body.includes(` ${key}, `) ||
-        comment.data.body.includes(` ${key}.`)
-      ) {
-        result[key] = Object.keys(result).includes(key) ? result[key] + 1 : 1;
-        console.log(`${key}: ${comment.data.body}`);
-        console.log(`_____________________________________________`);
       }
     });
   });
