@@ -62,9 +62,9 @@ async function get_comments() {
     if (processor_queue.length >= 1) {
       // call reddit api
       let sub_reddits;
-      //  sub_reddits =
-      // "Investing+Stocks+Economics+StockMarket+Economy+GlobalMarkets+WallStreetBets+Options+Finance+Bitcoin+Dividends+Cryptocurrency+SecurityAnalysis+AlgoTrading+DayTrading+PennyStocks";
-      sub_reddits = "all";
+       sub_reddits =
+      "Investing+Stocks+Economics+StockMarket+Economy+GlobalMarkets+WallStreetBets+Options+Finance+Bitcoin+Dividends+Cryptocurrency+SecurityAnalysis+AlgoTrading+DayTrading+PennyStocks";
+      // sub_reddits = "all";
       t0 = performance.now();
       const res = await reddit.get(`/r/${sub_reddits}/comments`, opt);
       t1 = performance.now();

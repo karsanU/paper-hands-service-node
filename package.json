@@ -18,7 +18,7 @@
   },
   "homepage": "https://github.com/karsanU/paper-hand-service-node#readme",
   "dependencies": {
-    "compromise": "^13.11.2",
+    "compromise": "^13.11.3",
     "reddit": "^1.2.1"
   }
 }

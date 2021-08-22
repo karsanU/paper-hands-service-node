@@ -1,4 +1,5 @@
 const { performance } = require("perf_hooks");
+const abbr = require("./abbr");
 const fs = require("fs");
 const readline = require("readline");
 /*
@@ -18,33 +19,9 @@ TODO edge cases: plurals, currencies, mapping crypto
 
 // process the CSV to populate the stock names
 stock_names = {};
-black_list_stock_names = [
-  "DD",
-  "YOLO",
-  "USA",
-  "UK",
-  "IMO",
-  "FYI",
-  "LOL",
-  "HAHA",
-  "YOLO",
-  "BTW",
-  "AFK",
-  "IQ",
-  "DM",
-  "NBA",
-  "FK",
-  "TA",
-  "POW",
-  "CAD",
-  "AUD",
-  "EUR",
-  "NGL",
-  "ARE",
-  "IRS",
-  "AF",
-  "AR",
-];
+black_list_stock_names = abbr.map(function (e) {
+  return e.toUpperCase();
+});
 stock_names_read = false;
 const result = {};
 
@@ -114,7 +91,7 @@ function is_stock_name_in_comment(comments) {
       if (key.length == 1 || black_list_stock_names.includes(key)) {
         stock_symbol = "$" + key;
       } else {
-        stock_symbol = "$" + key;
+        stock_symbol = "" + key;
       }
 
       // if the stock name only a single char then do this
