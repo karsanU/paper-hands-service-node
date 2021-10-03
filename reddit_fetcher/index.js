@@ -1,21 +1,25 @@
 const os = require("os");
-const { fork } = require("child_process");
+const {
+  fork
+} = require("child_process");
 const Reddit = require("./reddit_api_library_altered_version.js");
-const { performance } = require("perf_hooks");
+const {
+  performance
+} = require("perf_hooks");
 const Queue = require("./queue_data_structure");
 
 // initialize reddit api client
 let request_num = 0;
 const reddit = new Reddit({
-  username: "paper_hands_service",
-  password: "paper_hasdfsdfnds_service",
-  appId: "EHx9LGvdkEOrHg",
-  appSecret: "1CdtqjksYtrTUksYykQNcDwMm2kHWA",
-  userAgent: "MyApp/1.0.0 (http://example.com)",
+  username: process.env.REDDIT_USERNAME,
+  password: process.env.REDDIT_PASSWORD,
+  appId: process.env.REDDIT_APP_ID,
+  appSecret: process.env.REDDIT_APP_SECRET,
+  userAgent: process.env.REDDIT_USER_AGENT,
 });
 
 // hard code to 4 processes for now
-const cpuCount = 4; // os.cpus().length
+const cpuCount = 5 ? os.cpus().length > 5 : os.cpus().length
 const child_processes = {};
 // queue to keep track of which process needs to go next
 processor_queue = new Queue();
@@ -24,7 +28,7 @@ function create_child_processes(cpuCount) {
   for (let core = 0; core < cpuCount; core++) {
     child_processes[core] = {
       id: core + "",
-      process: fork("comment_processor.js"),
+      process: fork("./reddit_fetcher/comment_processor.js"),
     };
     child_processes[core].process.on("error", (err) => {
       // This will be called with err being an AbortError if the controller aborts
@@ -47,23 +51,21 @@ let t1;
 async function get_comments() {
   try {
     const opt =
-      before && before_is_working
-        ? {
-            before,
-            limit: 100,
-            count: 0,
-          }
-        : {
-            limit: 100,
-            count: 0,
-          };
+      before && before_is_working ? {
+        before,
+        limit: 100,
+        count: 0,
+      } : {
+        limit: 100,
+        count: 0,
+      };
 
-    // only fetch and call the processes if we have at least one available
+    // only fetch and call the processes if we have at least one processor available
     if (processor_queue.length >= 1) {
       // call reddit api
       let sub_reddits;
-       sub_reddits =
-      "Investing+Stocks+Economics+StockMarket+Economy+GlobalMarkets+WallStreetBets+Options+Finance+Bitcoin+Dividends+Cryptocurrency+SecurityAnalysis+AlgoTrading+DayTrading+PennyStocks";
+      sub_reddits =
+        "Investing+Stocks+Economics+StockMarket+Economy+GlobalMarkets+WallStreetBets+Options+Finance+Bitcoin+Dividends+Cryptocurrency+SecurityAnalysis+AlgoTrading+DayTrading+PennyStocks";
       // sub_reddits = "all";
       t0 = performance.now();
       const res = await reddit.get(`/r/${sub_reddits}/comments`, opt);
@@ -81,14 +83,17 @@ async function get_comments() {
       ) {
         let index = 0;
         let id = before.slice(3);
+        // because we might have re fetched a bunch of old comments check check to see if there were actually any new ones 
+        // from what we saw on the last fetch 
         while (comments[index].data.id > id) {
           index++;
         }
         comments = comments.slice(0, index);
-        console.log(`New comments: ${comments.length}`);
+        // console.log(`New comments: ${comments.length}`);
       }
 
       // update before
+      console.log(request_num);
       if (comments.length > 0) {
         // console.log("before: ", comments[0].data.name, res.body.data.before,
         //     " after: ", comments[comments.length - 1].data.name, res.body.data.after)
@@ -96,14 +101,16 @@ async function get_comments() {
         before_is_working = true;
         // call the child process
         const process_ref = processor_queue.dequeue();
-        process_ref.process.send({ comments, id: process_ref.id });
+        process_ref.process.send({
+          comments,
+          id: process_ref.id
+        });
         request_num++;
         // console.log(request_num)
         setTimeout(get_comments, 0);
       } else {
         before_is_working = false;
         request_num++;
-        console.log(request_num);
         setTimeout(get_comments, 0);
       }
     } else {

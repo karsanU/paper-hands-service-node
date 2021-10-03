@@ -48,8 +48,8 @@ class Reddit {
     if (errors && errors.length > 0) {
       const err = new Error(
         errors
-          .map((error) => `${error[0]}: ${error[1]} (${error[2]})`)
-          .join(". ")
+        .map((error) => `${error[0]}: ${error[1]} (${error[2]})`)
+        .join(". ")
       );
       err.code = errors[0][0];
       err.codes = errors.map((error) => error[0]);
@@ -65,8 +65,7 @@ class Reddit {
     }
 
     return new Promise((resolve, reject) => {
-      get.concat(
-        {
+      get.concat({
           url: TOKEN_BASE_URL,
           method: "POST",
           form: {
@@ -134,6 +133,7 @@ class Reddit {
     return new Promise((resolve, reject) => {
       const opts = {
         url: url,
+        maxSockets: 20,
         method: method,
         headers: {
           authorization: token,
@@ -170,7 +170,10 @@ class Reddit {
         const statusType = Math.floor(res.statusCode / 100);
 
         if (statusType === 2) {
-          return resolve({ body, header: res.headers });
+          return resolve({
+            body,
+            header: res.headers
+          });
         } else {
           return reject(
             new Error(

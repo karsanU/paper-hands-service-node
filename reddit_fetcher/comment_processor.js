@@ -31,7 +31,7 @@ These banned symbols must have a '$' in front as these words can be used out sid
 */
 function populate_ban_list(comments) {
   const reader = readline.createInterface({
-    input: fs.createReadStream("5000-words.txt"),
+    input: fs.createReadStream("./reddit_fetcher/5000-words.txt"),
   });
   // this is an async function
   reader
@@ -58,7 +58,7 @@ Read a list of files to get the stock names.
 */
 function populate_stock_names(comments) {
   const reader = readline.createInterface({
-    input: fs.createReadStream("stock_names.csv"),
+    input: fs.createReadStream("./reddit_fetcher/stock_names.csv"),
   });
   // this is an async function
   reader

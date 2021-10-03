@@ -4,8 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "node ./reddit_fetcher/index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "start": "env-cmd -f ./config/dev.env nodemon ./reddit_fetcher/index.js",
+    "dev": "env-cmd -f ./config/dev.env nodemon ./app.js",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "db": "C:/\"Program Files\"/MongoDB/Server/5.0/bin/mongod.exe --dbpath=C:/data/db"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,12 @@
   "homepage": "https://github.com/karsanU/paper-hand-service-node#readme",
   "dependencies": {
     "compromise": "^13.11.3",
+    "express": "^4.17.1",
+    "mongoose": "^6.0.8",
     "reddit": "^1.2.1"
+  },
+  "devDependencies": {
+    "nodemon": "^2.0.6",
+    "env-cmd": "^10.1.0"
   }
 }
