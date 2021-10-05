@@ -18,8 +18,8 @@ const reddit = new Reddit({
   userAgent: process.env.REDDIT_USER_AGENT,
 });
 
-// hard code to 4 processes for now
-const cpuCount = 5 ? os.cpus().length > 5 : os.cpus().length
+// just hard coding to once since this will be run on heroku, no room for optimization 
+const cpuCount = 1 // 5 ? os.cpus().length > 5 : os.cpus().length
 const child_processes = {};
 // queue to keep track of which process needs to go next
 processor_queue = new Queue();
@@ -32,7 +32,7 @@ function create_child_processes(cpuCount) {
     };
     child_processes[core].process.on("error", (err) => {
       // This will be called with err being an AbortError if the controller aborts
-      console.log(`Something went wrong with ${core}`);
+      throw (`Something went wrong with comment processor${core} \n ${err}`);
     });
     child_processes[core].process.on("message", (id) => {
       // call this when process is done with the batch of comments
@@ -46,8 +46,6 @@ function create_child_processes(cpuCount) {
 // get the data from API along with headers
 let before = "";
 let before_is_working = false;
-let t0;
-let t1;
 async function get_comments() {
   try {
     const opt =
@@ -67,9 +65,9 @@ async function get_comments() {
       sub_reddits =
         "Investing+Stocks+Economics+StockMarket+Economy+GlobalMarkets+WallStreetBets+Options+Finance+Bitcoin+Dividends+Cryptocurrency+SecurityAnalysis+AlgoTrading+DayTrading+PennyStocks";
       // sub_reddits = "all";
-      t0 = performance.now();
+      // t0 = performance.now();
       const res = await reddit.get(`/r/${sub_reddits}/comments`, opt);
-      t1 = performance.now();
+      // t1 = performance.now();
       // console.log("The api call took " + (t1 - t0) + "milliseconds." + " We received: " + res.body.data.children.length + ' comments.')
 
       // we have a case where our anchor before comment has been delete
@@ -122,8 +120,18 @@ async function get_comments() {
   }
 }
 
-create_child_processes(cpuCount);
-get_comments();
+try {
+  create_child_processes(cpuCount);
+  get_comments()
+} catch (err) {
+  for (key in child_processes) {
+    child_processes[key].process.kill()
+  }
+  throw err
+}
+
+
+
 
 /*
 console.log({
