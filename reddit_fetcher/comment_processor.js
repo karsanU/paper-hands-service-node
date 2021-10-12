@@ -2,6 +2,11 @@ const { performance } = require("perf_hooks");
 const abbr = require("./abbr");
 const fs = require("fs");
 const readline = require("readline");
+const Stock = require("../models/stock");
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/paper_hands_service_dev')
+
+
 /*
     Fetch the comments given the before and process them.
     If the comment is found with a stock name push the comment info to database.
@@ -64,12 +69,12 @@ function populate_stock_names(comments) {
   reader
     .on("line", function (line) {
       // process each line
-      parsed_data = line.split(",", 2);
+      parsed_data = line.split(",", 11);
       if (
         !black_list_stock_names.includes(parsed_data[0]) &&
         !parsed_data[0].includes(`^`)
       ) {
-        stock_names[parsed_data[0]] = parsed_data[1];
+        stock_names[parsed_data[0]] = parsed_data;
       }
     })
     .on("close", function () {
@@ -106,8 +111,34 @@ function is_stock_name_in_comment(comments) {
           result[stock_symbol] = Object.keys(result).includes(stock_symbol)
             ? result[stock_symbol] + 1
             : 1;
-          console.log(`${stock_symbol}: ${comment.data.body}`);
-          console.log(`_____________________________________________`);
+          // console.log(`${stock_symbol}: ${comment.data.body}`);
+          // console.log(`_____________________________________________`);
+          (async () => {
+            try {
+              let stock
+              stock = await Stock.findOne({ ticker: stock_symbol });
+              if (stock === null) {
+                const stock_data = {
+                  ticker: stock_symbol,
+                  name: stock_names[stock_symbol][1],
+                }
+                if (stock_names[6] !== "") stock_data['country'] = stock_names[stock_symbol][6]
+                if (stock_names[7] !== "") stock_data['IPOYear'] = stock_names[stock_symbol][7]
+                if (stock_names[9] !== "") stock_data['sector'] = stock_names[stock_symbol][9]
+                if (stock_names[10] !== "") stock_data['industry'] = stock_names[stock_symbol][10]
+                stock = await new Stock({ ...stock_data }
+                )
+              }
+              await stock.save()
+              await stock.populateMentions(comment.data.name)
+              //console.log(`${stock_symbol}: ${comment.data.body}`);
+            } catch (err) {
+              console.log(err)
+            }
+          }
+          )()
+
+
         }
       }
     });

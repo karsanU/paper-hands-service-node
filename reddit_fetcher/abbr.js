@@ -1,4 +1,12 @@
 module.exports = [
+
+  // crypto
+  "btc",
+  "eth",
+  "doge",
+  
+  
+
   "ar",
   "jpg",
 

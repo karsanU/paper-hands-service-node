@@ -8,6 +8,7 @@ const {
 } = require("perf_hooks");
 const Queue = require("./queue_data_structure");
 
+
 // initialize reddit api client
 let request_num = 0;
 const reddit = new Reddit({
@@ -120,6 +121,8 @@ async function get_comments() {
   }
 }
 
+
+// edge case where for some reason something goes wrong with the api we will restart
 try {
   create_child_processes(cpuCount);
   get_comments()
@@ -127,7 +130,7 @@ try {
   for (key in child_processes) {
     child_processes[key].process.kill()
   }
-  throw err
+  process.send(`restart`);
 }
 
 

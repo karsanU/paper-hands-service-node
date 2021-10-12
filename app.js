@@ -1,12 +1,14 @@
 const express = require('express')
 const app = express()
 const port = process.env.PORT || 3001;
-const mongoose = require('mongoose');
+const Stock = require('./models/stock');
 const {
   fork
 } = require("child_process");
 // connect to database 
-mongoose.connect(process.env.MONGODB_URL);
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost:27017/paper_hands_service_dev')
+
 
 // allow cross origin requests, later set up for only the frontend site
 var allowCrossDomain = function (req, res, next) {
@@ -23,23 +25,16 @@ app.use(allowCrossDomain);
 // start the comment processor 
 function startRedditFetcher() {
   const redditFetcher = fork("./reddit_fetcher/index.js");
-  redditFetcher.on("error", (err) => {
-    // This will be called with err being an AbortError if the controller aborts
-    redditFetcher.kill()
-    console.log(`killed reddit featcher`)
-    throw err
-  });
   redditFetcher.send(`start`);
+  redditFetcher.on("message", (msg) => {
+    console.log(`restarting`)
+    if (msg === "restart") {
+      redditFetcher.kill()
+      startRedditFetcher()
+    }
+  })
 }
-// restart if something goes wrong and record the error
-try {
-  console.log('here')
-  startRedditFetcher()
-} catch {
-  console.log('000')
-  startRedditFetcher()
-}
-
+startRedditFetcher()
 
 
 // start the server 

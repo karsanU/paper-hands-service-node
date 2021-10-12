@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "env-cmd -f ./config/dev.env nodemon ./reddit_fetcher/index.js",
-    "dev": "env-cmd -f ./config/dev.env nodemon ./app.js",
+    "reddit": "env-cmd -f ./config/dev.env nodemon ./reddit_fetcher/index.js",
+    "start": "env-cmd -f ./config/dev.env nodemon ./app.js",
     "test": "echo \"Error: no test specified\" && exit 1",
     "db": "C:/\"Program Files\"/MongoDB/Server/5.0/bin/mongod.exe --dbpath=C:/data/db"
   },
